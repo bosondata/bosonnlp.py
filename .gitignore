@@ -1,0 +1,8 @@
+venv
+dist
+distribute-*
+docs/_build
+*.egg-info
+*.egg
+*.py[c|o]
+__pycache__
