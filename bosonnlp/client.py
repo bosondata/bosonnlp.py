@@ -40,7 +40,7 @@ class BosonNLP(object):
         # Enable keep-alive and connection-pooling.
         self.session = requests.session()
         self.session.headers['X-Token'] = token
-        self.session.headers['User-Agent'] =  'bosonnlp.py/{} {}'.format(
+        self.session.headers['User-Agent'] = 'bosonnlp.py/{} {}'.format(
             __VERSION__, requests.utils.default_user_agent()
         )
 
@@ -67,13 +67,11 @@ class BosonNLP(object):
 
         return r
 
-    def sentiment(self, contents, prob=False, news=False):
+    def sentiment(self, contents, news=False):
         """BosonNLP `情感分析接口 <http://docs.bosonnlp.com/sentiment.html>`_ 封装。
 
         :param contents: 需要做情感分析的文本或者文本序列。
         :type contents: string or sequence of string
-
-        :param bool prob: 默认为 :py:class:`False`，是否返回情感分析概率。
 
         :param bool news: 默认为 :py:class:`False`，是否使用新闻语料训练的模型。
 
@@ -85,14 +83,12 @@ class BosonNLP(object):
 
         >>> nlp = BosonNLP('YOUR_API_TOKEN')
         >>> nlp.sentiment('他是个傻逼')
-        [1]
+        [[0.4464756252294154, 0.5535243747705846]]
         >>> nlp.sentiment(['他是个傻逼', '美好的世界'])
-        [1, 0]
+        [[0.4464756252294154, 0.5535243747705846], [0.6739600397344988, 0.3260399602655012]]
         """
         api_endpoint = '/sentiment/analysis'
         params = set()
-        if prob:
-            params.add('prob')
         if news:
             params.add('news')
         if params:
@@ -214,11 +210,15 @@ class BosonNLP(object):
         r = self._api_request('POST', api_endpoint, data=data)
         return r.json()
 
-    def ner(self, contents):
+    def ner(self, contents, sensitivity=None):
         """BosonNLP `命名实体识别接口 <http://docs.bosonnlp.com/ner.html>`_ 封装。
 
         :param contents: 需要做命名实体识别的文本或者文本序列。
         :type contents: string or sequence of string
+
+        :param sensitivity: 准确率与召回率之间的平衡，
+            设置成 1 能找到更多的实体，设置成 5 能以更高的精度寻找实体。
+        :type sensitivity: int 默认为 3
 
         :returns: 接口返回的结果列表。
 
@@ -240,8 +240,11 @@ class BosonNLP(object):
           'word': ['微软', 'XP', '操作系统', '今日', '正式', '退休']}]
         """
         api_endpoint = '/ner/analysis'
+        params = {}
+        if sensitivity is not None:
+            params['sensitivity'] = sensitivity
         data = json.dumps(contents)
-        r = self._api_request('POST', api_endpoint, data=data)
+        r = self._api_request('POST', api_endpoint, data=data, params=params)
         return r.json()
 
     def tag(self, contents):
@@ -277,7 +280,7 @@ class BosonNLP(object):
         if not contents:
             return False
         for i in range(0, len(contents), 100):
-            chunk = contents[i:i+100]
+            chunk = contents[i:i + 100]
             data = json.dumps(chunk)
             r = self._api_request('POST', api_endpoint, data=data)
         return r.ok
@@ -355,6 +358,7 @@ class BosonNLP(object):
             return []
         if isinstance(contents[0], basestring):
             contents = [{"_id": _id, "text": s} for _id, s in enumerate(contents)]
+        cluster = None
         try:
             cluster = self.create_cluster_task(contents, task_id)
             cluster.analysis(alpha=alpha, beta=beta)
@@ -362,7 +366,8 @@ class BosonNLP(object):
             result = cluster.result()
             return result
         finally:
-            cluster.clear()
+            if cluster is not None:
+                cluster.clear()
 
     def create_cluster_task(self, contents=None, task_id=None):
         """创建 :py:class:`~bosonnlp.ClusterTask` 对象。
@@ -392,7 +397,7 @@ class BosonNLP(object):
         if not contents:
             return False
         for i in range(0, len(contents), 100):
-            chunk = contents[i:i+100]
+            chunk = contents[i:i + 100]
             data = json.dumps(chunk)
             r = self._api_request('POST', api_endpoint, data=data)
         return r.ok
@@ -477,6 +482,7 @@ class BosonNLP(object):
             return []
         if isinstance(contents[0], basestring):
             contents = [{"_id": _id, "text": s} for _id, s in enumerate(contents)]
+        comments = None
         try:
             comments = self.create_comments_task(contents, task_id)
             comments.analysis(alpha=alpha, beta=beta)
@@ -484,7 +490,8 @@ class BosonNLP(object):
             result = comments.result()
             return result
         finally:
-            comments.clear()
+            if comments is not None:
+                comments.clear()
 
     def create_comments_task(self, contents=None, task_id=None):
         """创建 :py:class:`~bosonnlp.CommentsTask` 对象。

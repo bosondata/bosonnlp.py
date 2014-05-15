@@ -7,10 +7,10 @@ setup(
     name='bosonnlp',
     author='BosonData',
     author_email='support@bosondata.com.cn',
-    description="BosonNLP.com API Wrapper.",
+    description="BosonNLP.com API wrapper.",
     long_description=open('README.rst').read(),
     url='https://bosonnlp-py.readthedocs.org/',
-    version='0.1.0',
+    version='0.2.0',
     license='MIT',
     packages=find_packages(),
     install_requires=[

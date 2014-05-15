@@ -19,10 +19,9 @@ def nlp(request):
 
 
 def test_sentiment(nlp):
-    assert nlp.sentiment('他是个傻逼') == [1]
-    assert nlp.sentiment(['他是个傻逼', '美好的世界']) == [1, 0]
-    assert nlp.sentiment(['他是个傻逼', '美好的世界'], prob=True) == \
-      [[0.4464756252294154, 0.5535243747705846], [0.6739600397344988, 0.3260399602655012]]
+    result = nlp.sentiment(['他是个傻逼', '美好的世界'])
+    assert result[0][1] > result[0][0]
+    assert result[1][0] > result[1][1]
 
 
 def test_exceed_maximum_size_of_100_raises_HTTPError(nlp):
