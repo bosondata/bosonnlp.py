@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import sys
 import json
 import uuid
 import time
@@ -10,18 +11,24 @@ import requests
 from . import __VERSION__
 from .exceptions import HTTPError, TaskNotFoundError, TaskError, TimeoutError
 
-try:
-    basestring
-except NameError:
-    basestring = str
 
-
+PY2 = sys.version_info[0] == 2
 DEFAULT_BOSONNLP_URL = 'http://api.bosonnlp.com'
 DEFAULT_TIMEOUT = 30 * 60
 
 
+if PY2:
+    text_type = unicode
+    string_types = (str, unicode)
+else:
+    text_type = str
+    string_types = (str,)
+
 def _generate_id():
     return str(uuid.uuid4())
+
+
+_json_dumps = partial(json.dumps, ensure_ascii=False, sort_keys=True)
 
 
 class BosonNLP(object):
@@ -40,15 +47,20 @@ class BosonNLP(object):
         # Enable keep-alive and connection-pooling.
         self.session = requests.session()
         self.session.headers['X-Token'] = token
+        self.session.headers['Accept'] = 'application/json'
         self.session.headers['User-Agent'] = 'bosonnlp.py/{} {}'.format(
             __VERSION__, requests.utils.default_user_agent()
         )
 
     def _api_request(self, method, path, **kwargs):
         url = self.bosonnlp_url + path
-        self.session.headers['Accept'] = 'application/json'
         if method == 'POST':
             self.session.headers['Content-Type'] = 'application/json'
+            if 'data' in kwargs:
+                data = _json_dumps(kwargs['data'])
+                if isinstance(data, text_type):
+                    data = data.encode('utf-8')
+                kwargs['data'] = data
 
         r = self.session.request(method, url, **kwargs)
 
@@ -93,8 +105,7 @@ class BosonNLP(object):
             params.add('news')
         if params:
             api_endpoint += ('?' + '&'.join(params))
-        data = json.dumps(contents)
-        r = self._api_request('POST', api_endpoint, data=data)
+        r = self._api_request('POST', api_endpoint, data=contents)
         return r.json()
 
     def classify(self, contents):
@@ -118,8 +129,7 @@ class BosonNLP(object):
         [5, 4, 8]
         """
         api_endpoint = '/classify/analysis'
-        data = json.dumps(contents)
-        r = self._api_request('POST', api_endpoint, data=data)
+        r = self._api_request('POST', api_endpoint, data=contents)
         return r.json()
 
     def suggest(self, word, top_k=None):
@@ -143,8 +153,7 @@ class BosonNLP(object):
         params = {}
         if top_k is not None:
             params['top_k'] = top_k
-        data = json.dumps(word)
-        r = self._api_request('POST', api_endpoint, params=params, data=data)
+        r = self._api_request('POST', api_endpoint, params=params, data=word)
         return r.json()
 
     def extract_keywords(self, text, top_k=None, segmented=False):
@@ -173,8 +182,7 @@ class BosonNLP(object):
         params = {}
         if top_k is not None:
             params['top_k'] = top_k
-        data = json.dumps(text)
-        r = self._api_request('POST', api_endpoint, params=params, data=data)
+        r = self._api_request('POST', api_endpoint, params=params, data=text)
         return r.json()
 
     def depparser(self, contents):
@@ -206,8 +214,7 @@ class BosonNLP(object):
           'tag': ['VA', 'DEC', 'NN']}]
         """
         api_endpoint = '/depparser/analysis'
-        data = json.dumps(contents)
-        r = self._api_request('POST', api_endpoint, data=data)
+        r = self._api_request('POST', api_endpoint, data=contents)
         return r.json()
 
     def ner(self, contents, sensitivity=None):
@@ -243,8 +250,7 @@ class BosonNLP(object):
         params = {}
         if sensitivity is not None:
             params['sensitivity'] = sensitivity
-        data = json.dumps(contents)
-        r = self._api_request('POST', api_endpoint, data=data, params=params)
+        r = self._api_request('POST', api_endpoint, data=contents, params=params)
         return r.json()
 
     def tag(self, contents):
@@ -270,8 +276,7 @@ class BosonNLP(object):
           'word': ['微软', 'XP', '操作', '系统', '今日', '正式', '退休']}]
         """
         api_endpoint = '/tag/analysis'
-        data = json.dumps(contents)
-        r = self._api_request('POST', api_endpoint, data=data)
+        r = self._api_request('POST', api_endpoint, data=contents)
         return r.json()
 
     def _cluster_push(self, task_id, contents):
@@ -281,8 +286,7 @@ class BosonNLP(object):
             return False
         for i in range(0, len(contents), 100):
             chunk = contents[i:i + 100]
-            data = json.dumps(chunk)
-            r = self._api_request('POST', api_endpoint, data=data)
+            r = self._api_request('POST', api_endpoint, data=chunk)
         return r.ok
 
     def _cluster_analysis(self, task_id, alpha=None, beta=None):
@@ -356,7 +360,7 @@ class BosonNLP(object):
         """
         if not contents:
             return []
-        if isinstance(contents[0], basestring):
+        if isinstance(contents[0], string_types):
             contents = [{"_id": _id, "text": s} for _id, s in enumerate(contents)]
         cluster = None
         try:
@@ -398,8 +402,7 @@ class BosonNLP(object):
             return False
         for i in range(0, len(contents), 100):
             chunk = contents[i:i + 100]
-            data = json.dumps(chunk)
-            r = self._api_request('POST', api_endpoint, data=data)
+            r = self._api_request('POST', api_endpoint, data=chunk)
         return r.ok
 
     def _comments_analysis(self, task_id, alpha=None, beta=None):
@@ -480,7 +483,7 @@ class BosonNLP(object):
         """
         if not contents:
             return []
-        if isinstance(contents[0], basestring):
+        if isinstance(contents[0], string_types):
             contents = [{"_id": _id, "text": s} for _id, s in enumerate(contents)]
         comments = None
         try:
@@ -529,7 +532,7 @@ class _ClusterTask(object):
     def _prepare_contents(contents):
         if not contents:
             return []
-        if isinstance(contents[0], basestring):
+        if isinstance(contents[0], string_types):
             contents = [{"_id": _generate_id(), "text": s} for s in contents]
         elif isinstance(contents[0], tuple):
             contents = [{"_id": _id, "text": s} for _id, s in contents]
