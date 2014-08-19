@@ -2,9 +2,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import sys
+import gzip
 import json
 import uuid
 import time
+from io import BytesIO
 from functools import partial
 import requests
 
@@ -24,8 +26,16 @@ else:
     text_type = str
     string_types = (str,)
 
+
 def _generate_id():
     return str(uuid.uuid4())
+
+
+def _gzip_compress(buf):
+    zbuf = BytesIO()
+    with gzip.GzipFile(mode='wb', fileobj=zbuf, compresslevel=9) as zfile:
+        zfile.write(buf)
+    return zbuf.getvalue()
 
 
 _json_dumps = partial(json.dumps, ensure_ascii=False, sort_keys=True)
@@ -55,12 +65,17 @@ class BosonNLP(object):
     def _api_request(self, method, path, **kwargs):
         url = self.bosonnlp_url + path
         if method == 'POST':
-            self.session.headers['Content-Type'] = 'application/json'
             if 'data' in kwargs:
+                headers = kwargs.get('headers', {})
+                headers['Content-Type'] = 'application/json'
                 data = _json_dumps(kwargs['data'])
                 if isinstance(data, text_type):
                     data = data.encode('utf-8')
+                if len(data) > 10 * 1024:  # 10K
+                    headers['Content-Encoding'] = 'gzip'
+                    data = _gzip_compress(data)
                 kwargs['data'] = data
+                kwargs['headers'] = headers
 
         r = self.session.request(method, url, **kwargs)
 

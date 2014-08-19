@@ -24,6 +24,13 @@ def test_sentiment(nlp):
     assert result[1][0] > result[1][1]
 
 
+def test_compress_request_body_larger_than_10k(nlp):
+    resp = nlp._api_request('POST', '/sentiment/analysis',
+                            data=''.join(['美好的世界'] * 800))
+    assert resp.ok
+    assert resp.request.headers['Content-Encoding'] == 'gzip'
+
+
 def test_exceed_maximum_size_of_100_raises_HTTPError(nlp):
     input = ['今天天气好'] * 101
     excinfo = pytest.raises(HTTPError, lambda: nlp.sentiment(input))
