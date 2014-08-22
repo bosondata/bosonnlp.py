@@ -6,6 +6,7 @@ import gzip
 import json
 import uuid
 import time
+import datetime
 from io import BytesIO
 from functools import partial
 import requests
@@ -121,6 +122,28 @@ class BosonNLP(object):
         if params:
             api_endpoint += ('?' + '&'.join(params))
         r = self._api_request('POST', api_endpoint, data=contents)
+        return r.json()
+
+    def convert_time(self, content, basetime=None):
+        """BosonNLP `时间描述转换接口 <http://docs.bosonnlp.com/time.html>`_ 封装
+
+        :param content: 中文时间描述字符串
+        :type content: string
+
+        :param basetime: 时间描述的基准时间，传入一个时间戳或datetime
+        :type basetime: int or datetime.datetime
+
+        :raises: :py:exc:`~bosonnlp.HTTPError` 如果 API 请求发生错误。
+
+        :returns: 接口返回的结果
+        """
+        api_endpoint = '/time/analysis'
+        params = {'pattern': content}
+        if basetime:
+            if isinstance(basetime, datetime.datetime):
+                basetime = int(time.mktime(basetime.timetuple()))
+            params['basetime'] = basetime
+        r = self._api_request('POST', api_endpoint, params=params)
         return r.json()
 
     def classify(self, contents):

@@ -17,11 +17,28 @@ def nlp(request):
     # 注意：在测试时请更换为您的 API token。
     return BosonNLP('YOUR_API_TOKEN', **request.param)
 
-
 def test_sentiment(nlp):
     result = nlp.sentiment(['他是个傻逼', '美好的世界'])
     assert result[0][1] > result[0][0]
     assert result[1][0] > result[1][1]
+
+
+def test_convert_time_no_basetime(nlp):
+    result = nlp.convert_time("2013年二月二十八日下午四点三十分二十九秒")
+    assert result.get("timestamp") == "2013-02-28 16:30:29"
+
+
+def test_convert_time_with_basetime(nlp):
+    result = nlp.convert_time("2013年二月二十八日下午四点三十分二十九秒",
+                              1408674823)
+    assert result.get("timestamp") == "2013-02-28 16:30:29"
+
+
+def test_convert_time_with_datetime(nlp):
+    import datetime
+    result = nlp.convert_time("2013年二月二十八日下午四点三十分二十九秒",
+                              datetime.datetime.today())
+    assert result.get("timestamp") == "2013-02-28 16:30:29"
 
 
 def test_compress_request_body_larger_than_10k(nlp):
