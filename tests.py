@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import os
 import pytest
 from bosonnlp import BosonNLP, ClusterTask, CommentsTask
 from bosonnlp.exceptions import HTTPError, TaskNotFoundError, TimeoutError
@@ -14,8 +15,8 @@ def test_invalid_token_raises_HTTPError():
 @pytest.fixture(scope='module',
                 params=[{}, {'bosonnlp_url': 'http://api.bosondata.net'}])
 def nlp(request):
-    # 注意：在测试时请更换为您的 API token。
-    return BosonNLP('YOUR_API_TOKEN', **request.param)
+    # 注意：在测试时请设置环境变量BOSON_API_TOKEN为您的 API token。
+    return BosonNLP(os.environ['BOSON_API_TOKEN'], **request.param)
 
 def test_sentiment(nlp):
     result = nlp.sentiment(['他是个傻逼', '美好的世界'])
