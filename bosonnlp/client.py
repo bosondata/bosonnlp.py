@@ -136,6 +136,16 @@ class BosonNLP(object):
         :raises: :py:exc:`~bosonnlp.HTTPError` 如果 API 请求发生错误。
 
         :returns: 接口返回的结果
+
+        调用示例：
+
+        >>> nlp = BosonNLP('YOUR_API_TOKEN')
+        >>> nlp.convert_time("2013年二月二十八日下午四点三十分二十九秒")
+        {u'timestamp': u'2013-02-28 16:30:29'}
+        >>> import datetime
+        >>> nlp.convert_time("今天晚上8点到明天下午3点", datetime.datetime.today())
+        {u'timespan': [u'2014-08-25 20:00:00', u'2014-08-26 15:00:00']}
+
         """
         api_endpoint = '/time/analysis'
         params = {'pattern': content}
