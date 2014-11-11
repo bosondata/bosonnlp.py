@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys
 import gzip
 import json
+import logging
 import uuid
 import time
 import datetime
@@ -26,6 +27,13 @@ if PY2:
 else:
     text_type = str
     string_types = (str,)
+
+
+LOGGING_FORMAT = '%(asctime)-15s %(levelname)s %(message)s'
+logging.basicConfig(format=LOGGING_FORMAT, level=logging.INFO)
+
+logger = logging.getLogger('bosonnlp')
+logger.setLevel(logging.INFO)
 
 
 def _generate_id():
@@ -109,7 +117,8 @@ class BosonNLP(object):
 
         调用示例：
 
-        >>> nlp = BosonNLP('YOUR_API_TOKEN')
+        >>> import os
+        >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.sentiment('他是个傻逼')
         [[0.4464756252294154, 0.5535243747705846]]
         >>> nlp.sentiment(['他是个傻逼', '美好的世界'])
@@ -139,7 +148,8 @@ class BosonNLP(object):
 
         调用示例：
 
-        >>> nlp = BosonNLP('YOUR_API_TOKEN')
+        >>> import os
+        >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.convert_time("2013年二月二十八日下午四点三十分二十九秒")
         {u'timestamp': u'2013-02-28 16:30:29'}
         >>> import datetime
@@ -168,7 +178,8 @@ class BosonNLP(object):
 
         调用示例：
 
-        >>> nlp = BosonNLP('YOUR_API_TOKEN')
+        >>> import os
+        >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.classify('俄否决安理会谴责叙军战机空袭阿勒颇平民')
         [5]
         >>> nlp.classify(['俄否决安理会谴责叙军战机空袭阿勒颇平民',
@@ -193,7 +204,8 @@ class BosonNLP(object):
 
         调用示例：
 
-        >>> nlp = BosonNLP('YOUR_API_TOKEN')
+        >>> import os
+        >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.suggest('python', top_k=1)
         [[0.9999999999999992, 'python/x']]
         """
@@ -220,7 +232,8 @@ class BosonNLP(object):
 
         调用示例：
 
-        >>> nlp = BosonNLP('YOUR_API_TOKEN')
+        >>> import os
+        >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.extract_keywords('病毒式媒体网站：让新闻迅速蔓延', top_k=2)
         [[0.4580507649282757, '蔓延'], [0.44467176143180404, '病毒']]
         """
@@ -245,7 +258,8 @@ class BosonNLP(object):
 
         调用示例：
 
-        >>> nlp = BosonNLP('YOUR_API_TOKEN')
+        >>> import os
+        >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.depparser('他是个傻逼')
         [{'role': ['SBJ', 'ROOT', 'NMOD', 'VMOD'],
           'head': [1, -1, 3, 1],
@@ -281,7 +295,8 @@ class BosonNLP(object):
 
         调用示例：
 
-        >>> nlp = BosonNLP('YOUR_API_TOKEN')
+        >>> import os
+        >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.ner('成都商报记者 姚永忠')
         [{'entity': [[0, 2, 'product_name'], [3, 4, 'person_name']],
           'tag': ['ns', 'n', 'n', 'nr'],
@@ -313,7 +328,8 @@ class BosonNLP(object):
 
         调用示例：
 
-        >>> nlp = BosonNLP('YOUR_API_TOKEN')
+        >>> import os
+        >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.tag('成都商报记者 姚永忠')
         [{'tag': ['NR', 'NN', 'NN', 'NR'],
           'word': ['成都', '商报', '记者', '姚永忠']}]
@@ -335,6 +351,7 @@ class BosonNLP(object):
         for i in range(0, len(contents), 100):
             chunk = contents[i:i + 100]
             r = self._api_request('POST', api_endpoint, data=chunk)
+            logger.info('Pushed %d of %d documents for clustering.' % (i+len(chunk), len(contents)))
         return r.ok
 
     def _cluster_analysis(self, task_id, alpha=None, beta=None):
@@ -345,6 +362,7 @@ class BosonNLP(object):
         if beta is not None:
             params['beta'] = beta
         r = self._api_request('GET', api_endpoint, params=params)
+        logger.info('Cluster analysis started.')
         return r.ok
 
     def _cluster_status(self, task_id):
@@ -359,12 +377,15 @@ class BosonNLP(object):
         if status == 'error':
             raise TaskError('cluster {} error'.format(task_id), response=r)
 
+        logger.info('Status: %s.' % status)
         return status
 
     def _cluster_result(self, task_id):
         api_endpoint = '/cluster/result/' + task_id
-        r = self._api_request('GET', api_endpoint)
-        return r.json()
+        v = self._api_request('GET', api_endpoint).json()
+
+        logger.info('%d comments fetched.' % len(v))
+        return v
 
     def _cluster_clear(self, task_id):
         api_endpoint = '/cluster/clear/' + task_id
@@ -401,7 +422,8 @@ class BosonNLP(object):
 
         调用示例：
 
-        >>> nlp = BosonNLP('YOUR_API_TOKEN')
+        >>> import os
+        >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.cluster(['今天天气好', '今天天气好', '今天天气不错', '点点楼头细雨',
         ...              '重重江外平湖', '当年戏马会东徐', '今日凄凉南浦'])
         [{'_id': 0, 'list': [0, 1], 'num': 2}]
@@ -451,6 +473,7 @@ class BosonNLP(object):
         for i in range(0, len(contents), 100):
             chunk = contents[i:i + 100]
             r = self._api_request('POST', api_endpoint, data=chunk)
+            logger.info('Pushed %d of %d documents for comment clustering.' % (i+len(chunk), len(contents)))
         return r.ok
 
     def _comments_analysis(self, task_id, alpha=None, beta=None):
@@ -461,6 +484,7 @@ class BosonNLP(object):
         if beta is not None:
             params['beta'] = beta
         r = self._api_request('GET', api_endpoint, params=params)
+        logger.info('Comments analysis started.')
         return r.ok
 
     def _comments_status(self, task_id):
@@ -475,12 +499,15 @@ class BosonNLP(object):
         if status == 'error':
             raise TaskError('comments {} error'.format(task_id), response=r)
 
+        logger.info('Status: %s.' % status)
         return status
 
     def _comments_result(self, task_id):
         api_endpoint = '/comments/result/' + task_id
-        r = self._api_request('GET', api_endpoint)
-        return r.json()
+        v = self._api_request('GET', api_endpoint).json()
+
+        logger.info('%d comments fetched.' % len(v))
+        return v
 
     def _comments_clear(self, task_id):
         api_endpoint = '/comments/clear/' + task_id
@@ -517,7 +544,8 @@ class BosonNLP(object):
 
         调用示例：
 
-        >>> nlp = BosonNLP('YOUR_API_TOKEN')
+        >>> import os
+        >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.comments(['今天天气好', '今天天气好', '今天天气不错', '点点楼头细雨',
         ...               '重重江外平湖', '当年戏马会东徐', '今日凄凉南浦'] * 2)
         [{'_id': 0, 'list': [['点点楼头', 3], ['点点楼头', 10]],
@@ -698,7 +726,8 @@ class ClusterTask(_ClusterTask):
 
     一般通过 :py:meth:`~bosonnlp.BosonNLP.create_cluster_task` 创建实例。
 
-    >>> nlp = BosonNLP('YOUR_API_TOKEN')
+    >>> import os
+    >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
     >>> cluster = nlp.create_cluster_task()
 
     之后可以多次调用 :py:meth:`~bosonnlp.ClusterTask.push` 上传文本。
@@ -754,7 +783,8 @@ class CommentsTask(_ClusterTask):
 
     一般通过 :py:meth:`~bosonnlp.BosonNLP.create_comments_task` 创建实例。
 
-    >>> nlp = BosonNLP('YOUR_API_TOKEN')
+    >>> import os
+    >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
     >>> comments = nlp.create_comments_task()
 
     之后可以多次调用 :py:meth:`~bosonnlp.CommentsTask.push` 上传文本。
