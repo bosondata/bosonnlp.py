@@ -33,7 +33,7 @@ BosonNLP HTTP API 封装库（SDK）。
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 
-__VERSION__ = '0.4.0'
+__VERSION__ = '0.5.0'
 
 
 from .client import BosonNLP, ClusterTask, CommentsTask
