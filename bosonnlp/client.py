@@ -103,13 +103,14 @@ class BosonNLP(object):
 
         return r
 
-    def sentiment(self, contents, news=False):
+    def sentiment(self, contents, model='general'):
         """BosonNLP `情感分析接口 <http://docs.bosonnlp.com/sentiment.html>`_ 封装。
 
         :param contents: 需要做情感分析的文本或者文本序列。
         :type contents: string or sequence of string
 
-        :param bool news: 默认为 :py:class:`False`，是否使用新闻语料训练的模型。
+        :param model: 使用不同语料训练的模型，默认使用通用模型。
+        :type model: string
 
         :returns: 接口返回的结果列表。
 
@@ -119,17 +120,12 @@ class BosonNLP(object):
 
         >>> import os
         >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
-        >>> nlp.sentiment('他是个傻逼')
-        [[0.4464756252294154, 0.5535243747705846]]
-        >>> nlp.sentiment(['他是个傻逼', '美好的世界'])
-        [[0.4464756252294154, 0.5535243747705846], [0.6739600397344988, 0.3260399602655012]]
+        >>> nlp.sentiment('这家味道还不错')
+        [[0.8758192096636473, 0.12418079033635264]]
+        >>> nlp.sentiment(['这家味道还不错', '菜品太少了而且还不新鲜'])
+        [[0.8758192096636473, 0.12418079033635264], [0.33160979027792103, 0.668390209722079]]
         """
-        api_endpoint = '/sentiment/analysis'
-        params = set()
-        if news:
-            params.add('news')
-        if params:
-            api_endpoint += ('?' + '&'.join(params))
+        api_endpoint = '/sentiment/analysis?' + model
         r = self._api_request('POST', api_endpoint, data=contents)
         return r.json()
 
