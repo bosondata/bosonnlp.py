@@ -57,11 +57,14 @@ class BosonNLP(object):
 
     :param string bosonnlp_url: BosonNLP HTTP API 的 URL，默认为 `http://api.bosonnlp.com`。
 
+    :param bool compress: 是否压缩大于 10K 的请求体，默认为 True。
+
     """
 
-    def __init__(self, token, bosonnlp_url=DEFAULT_BOSONNLP_URL):
+    def __init__(self, token, bosonnlp_url=DEFAULT_BOSONNLP_URL, compress=True):
         self.token = token
         self.bosonnlp_url = bosonnlp_url
+        self.compress = compress
 
         # Enable keep-alive and connection-pooling.
         self.session = requests.session()
@@ -80,7 +83,7 @@ class BosonNLP(object):
                 data = _json_dumps(kwargs['data'])
                 if isinstance(data, text_type):
                     data = data.encode('utf-8')
-                if len(data) > 10 * 1024:  # 10K
+                if len(data) > 10 * 1024 and self.compress:  # 10K
                     headers['Content-Encoding'] = 'gzip'
                     data = _gzip_compress(data)
                 kwargs['data'] = data
