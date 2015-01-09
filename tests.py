@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import os
 import pytest
 from bosonnlp import BosonNLP, ClusterTask, CommentsTask
-from bosonnlp.exceptions import HTTPError, TaskNotFoundError, TimeoutError
+from bosonnlp.exceptions import HTTPError, TimeoutError
 
 
 def test_invalid_token_raises_HTTPError():
@@ -110,13 +110,6 @@ def test_tag(nlp):
           'word': ['成都', '商报', '记者', '姚永忠']},
          {'tag': ['NR', 'NN', 'NN', 'NN', 'NT', 'AD', 'VV'],
           'word': ['微软', 'XP', '操作', '系统', '今日', '正式', '退休']}]
-
-
-def test_cluster_task_without_analysis_raises_TaskNotFoundError(nlp):
-    input = ['今天天气好', '今天天气好', '今天天气不错', '点点楼头细雨',
-             '重重江外平湖', '当年戏马会东徐', '今日凄凉南浦']
-    cluster = nlp.create_cluster_task(input)
-    pytest.raises(TaskNotFoundError, lambda: cluster.wait_until_complete(timeout=1))
 
 
 def test_cluster_task_wait_until_complete_raises_TimeoutError(nlp):
@@ -231,7 +224,7 @@ def test_cluster_task_with_multiple_push(nlp, input1, input2):
 def test_comments(nlp, input):
     result = nlp.comments(input)
     assert len(result) == 4
-    assert set(['opinion', '_id', 'list', 'num']) == set(result[0].keys())
+    assert {'opinion', '_id', 'list', 'num'} == set(result[0].keys())
 
 
 @pytest.mark.parametrize('input', [
@@ -254,7 +247,7 @@ def test_comments_task(nlp, input):
     result = comments.result()
     comments.clear()
     assert len(result) == 4
-    assert set(['opinion', '_id', 'list', 'num']) == set(result[0].keys())
+    assert {'opinion', '_id', 'list', 'num'} == set(result[0].keys())
 
 
 @pytest.mark.parametrize('input', [
@@ -276,7 +269,7 @@ def test_create_comments_task(nlp, input):
     result = comments.result()
     comments.clear()
     assert len(result) == 4
-    assert set(['opinion', '_id', 'list', 'num']) == set(result[0].keys())
+    assert {'opinion', '_id', 'list', 'num'} == set(result[0].keys())
 
 
 @pytest.mark.parametrize('input1,input2', [
@@ -298,4 +291,4 @@ def test_comments_task_with_multiple_push(nlp, input1, input2):
     result = comments.result()
     comments.clear()
     assert len(result) == 4
-    assert set(['opinion', '_id', 'list', 'num']) == set(result[0].keys())
+    assert {'opinion', '_id', 'list', 'num'} == set(result[0].keys())
