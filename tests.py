@@ -9,7 +9,7 @@ from bosonnlp.exceptions import HTTPError, TaskNotFoundError, TimeoutError
 
 def test_invalid_token_raises_HTTPError():
     nlp = BosonNLP('invalid token')
-    err = pytest.raises(HTTPError, lambda: nlp.sentiment('他是个傻逼'))
+    pytest.raises(HTTPError, lambda: nlp.sentiment('美好的世界'))
 
 
 @pytest.fixture(scope='module',
@@ -19,7 +19,7 @@ def nlp(request):
     return BosonNLP(os.environ['BOSON_API_TOKEN'], **request.param)
 
 def test_sentiment(nlp):
-    result = nlp.sentiment(['他是个傻逼', '美好的世界'])
+    result = nlp.sentiment(['再也不来了', '美好的世界'])
     assert result[0][1] > result[0][0]
     assert result[1][0] > result[1][1]
 
@@ -71,28 +71,28 @@ def test_extract_keywords(nlp):
 
 
 def test_depparser(nlp):
-    assert nlp.depparser('他是个傻逼') == \
-        [{'role': ['SBJ', 'ROOT', 'NMOD', 'VMOD'],
-          'head': [1, -1, 3, 1],
-          'word': ['他', '是', '个', '傻逼'],
-          'tag': ['PN', 'VC', 'M', 'NN']}]
-    assert nlp.depparser(['他是个傻逼', '美好的世界']) == \
-        [{'role': ['SBJ', 'ROOT', 'NMOD', 'VMOD'],
-          'head': [1, -1, 3, 1],
-          'word': ['他', '是', '个', '傻逼'],
-          'tag': ['PN', 'VC', 'M', 'NN']},
-         {'role': ['DEC', 'NMOD', 'ROOT'],
+    assert nlp.depparser('今天天气好') == \
+        [{'tag': ['NT', 'NN', 'VA'],
+          'role': ['TMP', 'SBJ', 'ROOT'],
+          'head': [2, 2, -1],
+          'word': ['今天', '天气', '好']}]
+    assert nlp.depparser(['今天天气好', '美好的世界']) == \
+        [{'tag': ['NT', 'NN', 'VA'],
+          'role': ['TMP', 'SBJ', 'ROOT'],
+          'head': [2, 2, -1],
+          'word': ['今天', '天气', '好']},
+         {'tag': ['VA', 'DEC', 'NN'],
+          'role': ['DEC', 'NMOD', 'ROOT'],
           'head': [1, 2, -1],
-          'word': ['美好', '的', '世界'],
-          'tag': ['VA', 'DEC', 'NN']}]
+          'word': ['美好', '的', '世界']}]
 
 
 def test_ner(nlp):
-    assert nlp.ner('成都商报记者 姚永忠') == \
+    assert nlp.ner('成都商报记者 姚永忠', sensitivity=2) == \
         [{'tag': ['ns', 'n', 'n', 'nr'],
-          'word': ['\u6210\u90fd', '\u5546\u62a5', '\u8bb0\u8005', '\u59da\u6c38\u5fe0'],
+          'word': ['成都', '商报', '记者', '姚永忠'],
           'entity': [[0, 2, 'product_name'], [3, 4, 'person_name']]}]
-    assert nlp.ner(['成都商报记者 姚永忠', '微软XP操作系统今日正式退休']) == \
+    assert nlp.ner(['成都商报记者 姚永忠', '微软XP操作系统今日正式退休'], sensitivity=2) == \
         [{'tag': ['ns', 'n', 'n', 'nr'],
           'word': ['成都', '商报', '记者', '姚永忠'],
           'entity': [[0, 2, 'product_name'], [3, 4, 'person_name']]},

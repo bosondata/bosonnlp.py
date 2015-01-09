@@ -22,8 +22,8 @@ BosonNLP HTTP API 封装库（SDK）。
 
     >>> from bosonnlp import BosonNLP
     >>> nlp = BosonNLP('YOUR_API_TOKEN')
-    >>> nlp.sentiment('他是个傻逼')
-    [[0.4464756252294154, 0.5535243747705846]]
+    >>> nlp.sentiment('这家味道还不错')
+    [[0.8758192096636473, 0.12418079033635264]]
 
 可以在 `BosonNLP`_ 文档站点阅读详细的 BosonNLP HTTP API 文档。
 

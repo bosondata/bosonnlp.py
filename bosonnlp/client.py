@@ -63,7 +63,7 @@ class BosonNLP(object):
 
     def __init__(self, token, bosonnlp_url=DEFAULT_BOSONNLP_URL, compress=True):
         self.token = token
-        self.bosonnlp_url = bosonnlp_url
+        self.bosonnlp_url = bosonnlp_url.rstrip('/')
         self.compress = compress
 
         # Enable keep-alive and connection-pooling.
@@ -237,9 +237,9 @@ class BosonNLP(object):
         [[0.4580507649282757, '蔓延'], [0.44467176143180404, '病毒']]
         """
         api_endpoint = '/keywords/analysis'
-        if segmented:
-            api_endpoint += '?segmented'
         params = {}
+        if segmented:
+            params['segmented'] = 1
         if top_k is not None:
             params['top_k'] = top_k
         r = self._api_request('POST', api_endpoint, params=params, data=text)
@@ -259,20 +259,20 @@ class BosonNLP(object):
 
         >>> import os
         >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
-        >>> nlp.depparser('他是个傻逼')
-        [{'role': ['SBJ', 'ROOT', 'NMOD', 'VMOD'],
-          'head': [1, -1, 3, 1],
-          'word': ['他', '是', '个', '傻逼'],
-          'tag': ['PN', 'VC', 'M', 'NN']}]
-        >>> nlp.depparser(['他是个傻逼', '美好的世界'])
-        [{'role': ['SBJ', 'ROOT', 'NMOD', 'VMOD'],
-          'head': [1, -1, 3, 1],
-          'word': ['他', '是', '个', '傻逼'],
-          'tag': ['PN', 'VC', 'M', 'NN']},
-         {'role': ['DEC', 'NMOD', 'ROOT'],
+        >>> nlp.depparser('今天天气好')
+        [{'tag': ['NT', 'NN', 'VA'],
+          'role': ['TMP', 'SBJ', 'ROOT'],
+          'head': [2, 2, -1],
+          'word': ['今天', '天气', '好']}]
+        >>> nlp.depparser(['今天天气好', '美好的世界'])
+        [{'tag': ['NT', 'NN', 'VA'],
+          'role': ['TMP', 'SBJ', 'ROOT'],
+          'head': [2, 2, -1],
+          'word': ['今天', '天气', '好']},
+         {'tag': ['VA', 'DEC', 'NN'],
+          'role': ['DEC', 'NMOD', 'ROOT'],
           'head': [1, 2, -1],
-          'word': ['美好', '的', '世界'],
-          'tag': ['VA', 'DEC', 'NN']}]
+          'word': ['美好', '的', '世界']}]
         """
         api_endpoint = '/depparser/analysis'
         r = self._api_request('POST', api_endpoint, data=contents)
