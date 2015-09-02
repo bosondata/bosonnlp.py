@@ -1,2 +1,2 @@
 requests>=2.0.0
-sphinx-rtd-theme==0.1.6
+sphinx-rtd-theme==0.1.8

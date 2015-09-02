@@ -13,7 +13,7 @@ def test_invalid_token_raises_HTTPError():
 
 
 @pytest.fixture(scope='module',
-                params=[{}, {'bosonnlp_url': 'http://api.bosondata.net'}])
+                params=[{}])
 def nlp(request):
     # 注意：在测试时请设置环境变量BOSON_API_TOKEN为您的 API token。
     return BosonNLP(os.environ['BOSON_API_TOKEN'], **request.param)
@@ -63,7 +63,7 @@ def test_classify(nlp):
 
 
 def test_suggest(nlp):
-    assert nlp.suggest('python', top_k=1) == [[0.9999999999999992, 'python/x']]
+    assert nlp.suggest('北京', top_k=2)[1][1] == '上海/ns'
 
 
 def test_extract_keywords(nlp):
@@ -89,27 +89,31 @@ def test_depparser(nlp):
 
 def test_ner(nlp):
     assert nlp.ner('成都商报记者 姚永忠', sensitivity=2) == \
-        [{'tag': ['ns', 'n', 'n', 'nr'],
-          'word': ['成都', '商报', '记者', '姚永忠'],
-          'entity': [[0, 2, 'product_name'], [3, 4, 'person_name']]}]
+        [{'entity': [[0, 2, 'product_name'], [3, 4, 'person_name']],
+          'tag': ['ns', 'n', 'n', 'nr'],
+          'word': ['成都', '商报', '记者', '姚永忠']}]
+
     assert nlp.ner(['成都商报记者 姚永忠', '微软XP操作系统今日正式退休'], sensitivity=2) == \
-        [{'tag': ['ns', 'n', 'n', 'nr'],
-          'word': ['成都', '商报', '记者', '姚永忠'],
-          'entity': [[0, 2, 'product_name'], [3, 4, 'person_name']]},
-         {'tag': ['nt', 'x', 'nl', 't', 'ad', 'v'],
-          'word': ['微软', 'XP', '操作系统', '今日', '正式', '退休'],
-          'entity': [[0, 2, 'product_name'], [3, 4, 'time']]}]
+        [{'entity': [[0, 2, 'product_name'], [3, 4, 'person_name']],
+          'tag': ['ns', 'n', 'n', 'nr'],
+          'word': ['成都', '商报', '记者', '姚永忠']},
+
+         {'entity': [[0, 2, 'product_name'], [3, 4, 'time']],
+          'tag': ['nt', 'nx', 'nl', 't', 'ad', 'v'],
+          'word': ['微软', 'XP', '操作系统', '今日', '正式', '退休']}]
 
 
 def test_tag(nlp):
     assert nlp.tag('成都商报记者 姚永忠') == \
-        [{'tag': ['NR', 'NN', 'NN', 'NR'],
-          'word': ['成都', '商报', '记者', '姚永忠']}]
+        [{'word': ['成都', '商报', '记者', '姚永忠'],
+          'tag': ['ns', 'n', 'n', 'nr']}]
+
     assert nlp.tag(['成都商报记者 姚永忠', '微软XP操作系统今日正式退休']) == \
-        [{'tag': ['NR', 'NN', 'NN', 'NR'],
-          'word': ['成都', '商报', '记者', '姚永忠']},
-         {'tag': ['NR', 'NN', 'NN', 'NN', 'NT', 'AD', 'VV'],
-          'word': ['微软', 'XP', '操作', '系统', '今日', '正式', '退休']}]
+        [{'word': ['成都', '商报', '记者', '姚永忠'],
+          'tag': ['ns', 'n', 'n', 'nr']},
+
+         {'word': ['微软', 'XP', '操作系统', '今日', '正式', '退休'],
+          'tag': ['nt', 'nx', 'nl', 't', 'ad', 'v']}]
 
 
 def test_cluster_task_wait_until_complete_raises_TimeoutError(nlp):

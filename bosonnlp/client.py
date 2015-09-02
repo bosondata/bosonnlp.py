@@ -123,10 +123,11 @@ class BosonNLP(object):
 
         >>> import os
         >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
-        >>> nlp.sentiment('这家味道还不错')
-        [[0.8758192096636473, 0.12418079033635264]]
-        >>> nlp.sentiment(['这家味道还不错', '菜品太少了而且还不新鲜'])
-        [[0.8758192096636473, 0.12418079033635264], [0.33160979027792103, 0.668390209722079]]
+        >>> nlp.sentiment('这家味道还不错', model='food')
+        [[0.9991737012037423, 0.0008262987962577828]]
+        >>> nlp.sentiment(['这家味道还不错', '菜品太少了而且还不新鲜'], model='food')
+        [[0.9991737012037423, 0.0008262987962577828],
+         [9.940036427291687e-08, 0.9999999005996357]]
         """
         api_endpoint = '/sentiment/analysis?' + model
         r = self._api_request('POST', api_endpoint, data=contents)
@@ -149,11 +150,11 @@ class BosonNLP(object):
 
         >>> import os
         >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
-        >>> nlp.convert_time("2013年二月二十八日下午四点三十分二十九秒")
-        {u'timestamp': u'2013-02-28 16:30:29'}
+        >>> _json_dumps(nlp.convert_time("2013年二月二十八日下午四点三十分二十九秒"))
+        '{"timestamp": "2013-02-28 16:30:29", "type": "timestamp"}'
         >>> import datetime
-        >>> nlp.convert_time("今天晚上8点到明天下午3点", datetime.datetime.today())
-        {u'timespan': [u'2014-08-25 20:00:00', u'2014-08-26 15:00:00']}
+        >>> _json_dumps(nlp.convert_time("今天晚上8点到明天下午3点", datetime.datetime(2015, 9, 1)))
+        '{"timespan": ["2015-09-02 20:00:00", "2015-09-03 15:00:00"], "type": "timespan_0"}'
 
         """
         api_endpoint = '/time/analysis'
@@ -205,8 +206,8 @@ class BosonNLP(object):
 
         >>> import os
         >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
-        >>> nlp.suggest('python', top_k=1)
-        [[0.9999999999999992, 'python/x']]
+        >>> nlp.suggest('北京', top_k=2)
+        [[1.0, '北京/ns'], [0.7493540460397998, '上海/ns']]
         """
         api_endpoint = '/suggest/analysis'
         params = {}
@@ -234,7 +235,7 @@ class BosonNLP(object):
         >>> import os
         >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.extract_keywords('病毒式媒体网站：让新闻迅速蔓延', top_k=2)
-        [[0.4580507649282757, '蔓延'], [0.44467176143180404, '病毒']]
+        [[0.8391345017584958, '病毒式'], [0.3802418301341705, '蔓延']]
         """
         api_endpoint = '/keywords/analysis'
         params = {}
@@ -260,18 +261,18 @@ class BosonNLP(object):
         >>> import os
         >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.depparser('今天天气好')
-        [{'tag': ['NT', 'NN', 'VA'],
+        [{'head': [2, 2, -1],
           'role': ['TMP', 'SBJ', 'ROOT'],
-          'head': [2, 2, -1],
+          'tag': ['NT', 'NN', 'VA'],
           'word': ['今天', '天气', '好']}]
         >>> nlp.depparser(['今天天气好', '美好的世界'])
-        [{'tag': ['NT', 'NN', 'VA'],
+        [{'head': [2, 2, -1],
           'role': ['TMP', 'SBJ', 'ROOT'],
-          'head': [2, 2, -1],
+          'tag': ['NT', 'NN', 'VA'],
           'word': ['今天', '天气', '好']},
-         {'tag': ['VA', 'DEC', 'NN'],
+         {'head': [1, 2, -1],
           'role': ['DEC', 'NMOD', 'ROOT'],
-          'head': [1, 2, -1],
+          'tag': ['VA', 'DEC', 'NN'],
           'word': ['美好', '的', '世界']}]
         """
         api_endpoint = '/depparser/analysis'
@@ -296,16 +297,17 @@ class BosonNLP(object):
 
         >>> import os
         >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
-        >>> nlp.ner('成都商报记者 姚永忠')
+        >>> nlp.ner('成都商报记者 姚永忠', sensitivity=2)
         [{'entity': [[0, 2, 'product_name'], [3, 4, 'person_name']],
           'tag': ['ns', 'n', 'n', 'nr'],
           'word': ['成都', '商报', '记者', '姚永忠']}]
+
         >>> nlp.ner(['成都商报记者 姚永忠', '微软XP操作系统今日正式退休'])
         [{'entity': [[0, 2, 'product_name'], [3, 4, 'person_name']],
           'tag': ['ns', 'n', 'n', 'nr'],
           'word': ['成都', '商报', '记者', '姚永忠']},
          {'entity': [[0, 2, 'product_name'], [3, 4, 'time']],
-          'tag': ['nt', 'x', 'nl', 't', 'ad', 'v'],
+          'tag': ['nt', 'nx', 'nl', 't', 'ad', 'v'],
           'word': ['微软', 'XP', '操作系统', '今日', '正式', '退休']}]
         """
         api_endpoint = '/ner/analysis'
@@ -315,31 +317,63 @@ class BosonNLP(object):
         r = self._api_request('POST', api_endpoint, data=contents, params=params)
         return r.json()
 
-    def tag(self, contents):
+    def tag(self, contents, space_mode=0, oov_level=3, t2s=0, special_char_conv=0):
         """BosonNLP `分词与词性标注 <http://docs.bosonnlp.com/tag.html>`_ 封装。
 
         :param contents: 需要做分词与词性标注的文本或者文本序列。
         :type contents: string or sequence of string
 
+        :param space_mode: 空格保留选项，
+        :type space_mode: int（整型）, 0-3有效
+
+        :param oov_level: 枚举强度选项
+        :type oov_level:  int（整型）, 0-4有效
+
+        :param t2s: 繁简转换选项，繁转简或不转换
+        :type t2s:  int（整型）, 0-1有效
+
+        :param special_char_conv: 特殊字符转化选项，针对回车、Tab等特殊字符转化或者不转化
+        :type special_char_conv:  int（整型）, 0-1有效
+
         :returns: 接口返回的结果列表。
 
         :raises: :py:exc:`~bosonnlp.HTTPError` 如果 API 请求发生错误。
+
+        调用参数及返回值详细说明见：http://docs.bosonnlp.com/tag.html
 
         调用示例：
 
         >>> import os
         >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
-        >>> nlp.tag('成都商报记者 姚永忠')
-        [{'tag': ['NR', 'NN', 'NN', 'NR'],
-          'word': ['成都', '商报', '记者', '姚永忠']}]
-        >>> nlp.tag(['成都商报记者 姚永忠', '微软XP操作系统今日正式退休'])
-        [{'tag': ['NR', 'NN', 'NN', 'NR'],
-          'word': ['成都', '商报', '记者', '姚永忠']},
-         {'tag': ['NR', 'NN', 'NN', 'NN', 'NT', 'AD', 'VV'],
-          'word': ['微软', 'XP', '操作', '系统', '今日', '正式', '退休']}]
+
+        >>> result = nlp.tag('成都商报记者 姚永忠')
+        >>> _json_dumps(result)
+        '[{"tag": ["ns", "n", "n", "nr"], "word": ["成都", "商报", "记者", "姚永忠"]}]'
+
+        >>> format_tag_result = lambda tagged: ' '.join('%s/%s' % x for x in zip(tagged['word'], tagged['tag']))
+        >>> result = nlp.tag("成都商报记者 姚永忠")
+        >>> format_tag_result(result[0])
+        '成都/ns 商报/n 记者/n 姚永忠/nr'
+
+        >>> result = nlp.tag("成都商报记者 姚永忠", space_mode=2)
+        >>> format_tag_result(result[0])
+        '成都/ns 商报/n 记者/n  /w 姚永忠/nr'
+
+        >>> result = nlp.tag(['亚投行意向创始成员国确定为57个', '“流量贵”频被吐槽'], oov_level=0)
+        >>> format_tag_result(result[0])
+        '亚/ns 投/v 行/n 意向/n 创始/vi 成员国/n 确定/v 为/v 57/m 个/q'
+
+        >>> format_tag_result(result[1])
+        '“/wyz 流量/n 贵/a ”/wyy 频/d 被/pbei 吐槽/v'
         """
         api_endpoint = '/tag/analysis'
-        r = self._api_request('POST', api_endpoint, data=contents)
+        params = {
+            'space_mode': space_mode,
+            'oov_level': oov_level,
+            't2s': t2s,
+            'special_char_conv': special_char_conv,
+        }
+        r = self._api_request('POST', api_endpoint, params=params, data=contents)
         return r.json()
 
     def _cluster_push(self, task_id, contents):
@@ -657,6 +691,8 @@ class _ClusterTask(object):
         """
         elapsed = 0.0
         seconds_to_sleep = 1.0
+        if timeout is not None:
+            seconds_to_sleep = min(seconds_to_sleep, timeout)
         i = 0
         while True:
             time.sleep(seconds_to_sleep)
