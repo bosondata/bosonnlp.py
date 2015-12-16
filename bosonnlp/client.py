@@ -329,7 +329,7 @@ class BosonNLP(object):
         :param contents: 需要做分词与词性标注的文本或者文本序列。
         :type contents: string or sequence of string
 
-        :param space_mode: 空格保留选项，
+        :param space_mode: 空格保留选项
         :type space_mode: int（整型）, 0-3有效
 
         :param oov_level: 枚举强度选项
@@ -380,6 +380,65 @@ class BosonNLP(object):
             'special_char_conv': special_char_conv,
         }
         r = self._api_request('POST', api_endpoint, params=params, data=contents)
+        return r.json()
+
+    def summary(self, title, content, word_limit=0.3, not_exceed=False):
+        """BosonNLP `新闻摘要 <http://docs.bosonnlp.com/summary.html>`_ 封装。
+
+        :param title: 需要做摘要的新闻标题。如果没有标题，请传空字符串。
+        :type title: unicode
+
+        :param content: 需要做摘要的新闻正文。
+        :type content: unicode
+
+        :param word_limit: 摘要字数限制。
+            当为 float 时，表示字数为原本的百分比，0.0-1.0有效；
+            当为 int 时，表示摘要字数。
+
+            .. note::
+
+               传 1 默认为百分比。
+
+        :type word_limit: float or int
+
+        :param not_exceed: 是否严格限制字数。
+        :type not_exceed: bool，默认为 False
+
+        :returns: 摘要。
+
+        :raises: :py:exc:`~bosonnlp.HTTPError` 当API请求发生错误。
+
+        调用参数及返回值详细说明见： http://docs.bosonnlp.com/summary.html
+
+        调用示例：
+
+        >>> import os
+        >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
+
+        >>> content = (
+                '腾讯科技讯（刘亚澜）10月22日消息，前优酷土豆技术副总裁'
+                '黄冬已于日前正式加盟芒果TV，出任CTO一职。'
+                '资料显示，黄冬历任土豆网技术副总裁、优酷土豆集团产品'
+                '技术副总裁等职务，曾主持设计、运营过优酷土豆多个'
+                '大型高容量产品和系统。'
+                '此番加入芒果TV或与芒果TV计划自主研发智能硬件OS有关。')
+        >>> title = '前优酷土豆技术副总裁黄冬加盟芒果TV任CTO'
+
+        >>> nlp.summary(title, content, 0.1)
+        腾讯科技讯（刘亚澜）10月22日消息，前优酷土豆技术副总裁黄冬已于日前正式加盟芒果TV，出任CTO一职。
+        """
+        api_endpoint = '/summary/analysis'
+
+        not_exceed = int(not_exceed)
+
+        data = {
+            'not_exceed': not_exceed,
+            'percentage': word_limit,
+            'title': title,
+            'content': content
+        }
+
+        r = self._api_request('POST', api_endpoint, data=data)
         return r.json()
 
     def _cluster_push(self, task_id, contents):

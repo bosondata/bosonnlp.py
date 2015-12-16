@@ -116,6 +116,26 @@ def test_tag(nlp):
           'tag': ['nt', 'nx', 'nl', 't', 'ad', 'v']}]
 
 
+def test_summary(nlp):
+    content = (
+        '腾讯科技讯（刘亚澜）10月22日消息，前优酷土豆技术副总裁'
+        '黄冬已于日前正式加盟芒果TV，出任CTO一职。'
+        '资料显示，黄冬历任土豆网技术副总裁、优酷土豆集团产品'
+        '技术副总裁等职务，曾主持设计、运营过优酷土豆多个'
+        '大型高容量产品和系统。'
+        '此番加入芒果TV或与芒果TV计划自主研发智能硬件OS有关。')
+
+    title = '前优酷土豆技术副总裁黄冬加盟芒果TV任CTO'
+
+    assert (nlp.summary(title, content) ==
+            '腾讯科技讯（刘亚澜）10月22日消息，前优酷土豆技术副总裁黄冬'
+            '已于日前正式加盟芒果TV，出任CTO一职。')
+
+    assert (nlp.summary(title, content, word_limit=0.4, not_exceed=True) ==
+            '腾讯科技讯（刘亚澜）10月22日消息，前优酷土豆技术副总裁黄冬'
+            '已于日前正式加盟芒果TV，出任CTO一职。')
+
+
 def test_cluster_task_wait_until_complete_raises_TimeoutError(nlp):
     input = ['今天天气好', '今天天气好', '今天天气不错', '点点楼头细雨',
              '重重江外平湖', '当年戏马会东徐', '今日凄凉南浦']
