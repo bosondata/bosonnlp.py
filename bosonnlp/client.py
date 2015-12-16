@@ -279,7 +279,7 @@ class BosonNLP(object):
         r = self._api_request('POST', api_endpoint, data=contents)
         return r.json()
 
-    def ner(self, contents, sensitivity=None):
+    def ner(self, contents, sensitivity=None, segmented=False):
         """BosonNLP `命名实体识别接口 <http://docs.bosonnlp.com/ner.html>`_ 封装。
 
         :param contents: 需要做命名实体识别的文本或者文本序列。
@@ -288,6 +288,9 @@ class BosonNLP(object):
         :param sensitivity: 准确率与召回率之间的平衡，
             设置成 1 能找到更多的实体，设置成 5 能以更高的精度寻找实体。
         :type sensitivity: int 默认为 3
+
+        :param segmented: 输入是否为分词结果
+        :type : boolean 默认为 False
 
         :returns: 接口返回的结果列表。
 
@@ -314,6 +317,9 @@ class BosonNLP(object):
         params = {}
         if sensitivity is not None:
             params['sensitivity'] = sensitivity
+        if segmented:
+            params['segmented'] = True
+
         r = self._api_request('POST', api_endpoint, data=contents, params=params)
         return r.json()
 
