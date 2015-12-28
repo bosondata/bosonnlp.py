@@ -301,16 +301,22 @@ class BosonNLP(object):
         >>> import os
         >>> nlp = BosonNLP(os.environ['BOSON_API_TOKEN'])
         >>> nlp.ner('成都商报记者 姚永忠', sensitivity=2)
-        [{'entity': [[0, 2, 'product_name'], [3, 4, 'person_name']],
+        [{'entity': [[0, 2, 'product_name'],
+                     [2, 3, 'job_title'],
+                     [3, 4, 'person_name']],
           'tag': ['ns', 'n', 'n', 'nr'],
           'word': ['成都', '商报', '记者', '姚永忠']}]
 
         >>> nlp.ner(['成都商报记者 姚永忠', '微软XP操作系统今日正式退休'])
-        [{'entity': [[0, 2, 'product_name'], [3, 4, 'person_name']],
+        [{'entity': [[0, 2, 'product_name'],
+                     [2, 3, 'job_title'],
+                     [3, 4, 'person_name']],
           'tag': ['ns', 'n', 'n', 'nr'],
           'word': ['成都', '商报', '记者', '姚永忠']},
-         {'entity': [[0, 2, 'product_name'], [3, 4, 'time']],
-          'tag': ['nt', 'nx', 'nl', 't', 'ad', 'v'],
+
+         {'entity': [[0, 2, 'product_name'],
+                     [3, 4, 'time']],
+          'tag': ['nz', 'nx', 'nl', 't', 'ad', 'v'],
           'word': ['微软', 'XP', '操作系统', '今日', '正式', '退休']}]
         """
         api_endpoint = '/ner/analysis'
