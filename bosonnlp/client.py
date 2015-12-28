@@ -290,7 +290,7 @@ class BosonNLP(object):
         :type sensitivity: int 默认为 3
 
         :param segmented: 输入是否为分词结果
-        :type : boolean 默认为 False
+        :type segmented: boolean 默认为 False
 
         :returns: 接口返回的结果列表。
 
@@ -313,7 +313,6 @@ class BosonNLP(object):
                      [3, 4, 'person_name']],
           'tag': ['ns', 'n', 'n', 'nr'],
           'word': ['成都', '商报', '记者', '姚永忠']},
-
          {'entity': [[0, 2, 'product_name'],
                      [3, 4, 'time']],
           'tag': ['nz', 'nx', 'nl', 't', 'ad', 'v'],
