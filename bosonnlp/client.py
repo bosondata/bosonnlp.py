@@ -29,11 +29,7 @@ else:
     string_types = (str,)
 
 
-LOGGING_FORMAT = '%(asctime)-15s %(levelname)s %(message)s'
-logging.basicConfig(format=LOGGING_FORMAT, level=logging.INFO)
-
-logger = logging.getLogger('bosonnlp')
-logger.setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def _generate_id():
