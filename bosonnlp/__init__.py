@@ -31,6 +31,7 @@ BosonNLP HTTP API 封装库（SDK）。
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+import logging
 
 
 __VERSION__ = '0.7.0'
@@ -38,3 +39,13 @@ __VERSION__ = '0.7.0'
 
 from .client import BosonNLP, ClusterTask, CommentsTask
 from .exceptions import HTTPError, TaskNotFoundError, TaskError, TimeoutError
+
+# Set default logging handler to avoid "No handler found" warnings.
+try:  # Python 2.7+
+    from logging import NullHandler
+except ImportError:
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+
+logging.getLogger(__name__).addHandler(NullHandler())
