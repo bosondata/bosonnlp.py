@@ -321,3 +321,14 @@ def test_comments_task_with_multiple_push(nlp, input1, input2):
     comments.clear()
     assert len(result) == 4
     assert {'opinion', '_id', 'list', 'num'} == set(result[0].keys())
+
+
+def test_custom_requests_session():
+    import requests
+
+    session = requests.session()
+    nlp = BosonNLP(os.environ['BOSON_API_TOKEN'], session=session)
+    assert nlp.session == session
+    result = nlp.sentiment(['再也不来了', '美好的世界'])
+    assert result[0][1] > result[0][0]
+    assert result[1][0] > result[1][1]
