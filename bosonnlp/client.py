@@ -57,13 +57,13 @@ class BosonNLP(object):
 
     """
 
-    def __init__(self, token, bosonnlp_url=DEFAULT_BOSONNLP_URL, compress=True):
+    def __init__(self, token, bosonnlp_url=DEFAULT_BOSONNLP_URL, compress=True, session=None):
         self.token = token
         self.bosonnlp_url = bosonnlp_url.rstrip('/')
         self.compress = compress
 
         # Enable keep-alive and connection-pooling.
-        self.session = requests.session()
+        self.session = session or requests.session()
         self.session.headers['X-Token'] = token
         self.session.headers['Accept'] = 'application/json'
         self.session.headers['User-Agent'] = 'bosonnlp.py/{} {}'.format(
