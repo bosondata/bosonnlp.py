@@ -34,7 +34,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import logging
 
 
-__VERSION__ = '0.8.0'
+__VERSION__ = '0.9.0'
 
 
 from .client import BosonNLP, ClusterTask, CommentsTask
