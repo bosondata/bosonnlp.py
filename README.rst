@@ -23,6 +23,8 @@ BosonNLP HTTP API 封装库（SDK）。
     >>> nlp.sentiment('这家味道还不错')
     [[0.8758192096636473, 0.12418079033635264]]
 
+SDK API 文档地址：http://bosonnlp-py.readthedocs.org/
+
 可以在 `BosonNLP`_ 文档站点阅读详细的 BosonNLP HTTP API 文档。
 
 .. _BosonNLP: http://docs.bosonnlp.com/
