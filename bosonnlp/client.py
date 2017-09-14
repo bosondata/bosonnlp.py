@@ -55,12 +55,15 @@ class BosonNLP(object):
 
     :param bool compress: 是否压缩大于 10K 的请求体，默认为 True。
 
+    :param int timeout: HTTP 请求超时时间，默认为 60 秒。
+
     """
 
-    def __init__(self, token, bosonnlp_url=DEFAULT_BOSONNLP_URL, compress=True, session=None):
+    def __init__(self, token, bosonnlp_url=DEFAULT_BOSONNLP_URL, compress=True, session=None, timeout=60):
         self.token = token
         self.bosonnlp_url = bosonnlp_url.rstrip('/')
         self.compress = compress
+        self.timeout = timeout
 
         # Enable keep-alive and connection-pooling.
         self.session = session or requests.session()
@@ -71,6 +74,7 @@ class BosonNLP(object):
         )
 
     def _api_request(self, method, path, **kwargs):
+        kwargs.setdefault('timeout', self.timeout)
         url = self.bosonnlp_url + path
         if method == 'POST':
             if 'data' in kwargs:
