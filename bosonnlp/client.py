@@ -17,7 +17,7 @@ from .exceptions import HTTPError, TaskNotFoundError, TaskError, TimeoutError
 
 
 PY2 = sys.version_info[0] == 2
-DEFAULT_BOSONNLP_URL = 'http://api.bosonnlp.com'
+DEFAULT_BOSONNLP_URL = 'https://api.bosonnlp.com'
 DEFAULT_TIMEOUT = 30 * 60
 
 
@@ -51,7 +51,7 @@ class BosonNLP(object):
 
     :param string token: 用于 API 鉴权的 API Token。
 
-    :param string bosonnlp_url: BosonNLP HTTP API 的 URL，默认为 `http://api.bosonnlp.com`。
+    :param string bosonnlp_url: BosonNLP HTTP API 的 URL，默认为 `https://api.bosonnlp.com`。
 
     :param bool compress: 是否压缩大于 10K 的请求体，默认为 True。
 
