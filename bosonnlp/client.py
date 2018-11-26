@@ -279,7 +279,7 @@ class BosonNLP(object):
         r = self._api_request('POST', api_endpoint, data=contents)
         return r.json()
 
-    def ner(self, contents, sensitivity=None, segmented=False):
+    def ner(self, contents, sensitivity=None, segmented=False, space_mode='3'):
         """BosonNLP `命名实体识别接口 <http://docs.bosonnlp.com/ner.html>`_ 封装。
 
         :param contents: 需要做命名实体识别的文本或者文本序列。
@@ -291,6 +291,9 @@ class BosonNLP(object):
 
         :param segmented: 输入是否为分词结果
         :type segmented: boolean 默认为 False
+
+        :param space_mode: 分词空格保留选项
+        :type space_mode: int（整型）, 0-3有效，默认为 3
 
         :returns: 接口返回的结果列表。
 
@@ -319,7 +322,7 @@ class BosonNLP(object):
           'word': ['微软', 'XP', '操作系统', '今日', '正式', '退休']}]
         """
         api_endpoint = '/ner/analysis'
-        params = {}
+        params = {'space_mode': space_mode}
         if sensitivity is not None:
             params['sensitivity'] = sensitivity
         if segmented:
