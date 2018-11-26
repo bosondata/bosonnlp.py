@@ -10,7 +10,7 @@ setup(
     description="BosonNLP.com API wrapper.",
     long_description=open('README.rst').read(),
     url='https://bosonnlp-py.readthedocs.org/',
-    version='0.11.0',
+    version='0.11.1',
     license='MIT',
     packages=find_packages(),
     install_requires=[
